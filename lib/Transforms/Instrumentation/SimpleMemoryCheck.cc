@@ -33,6 +33,8 @@ static llvm::cl::opt<unsigned int> SMCAnalysisThreshold(
     llvm::cl::desc("Max no. of analyzed memory instructions"),
     llvm::cl::init(100));
 
+const bool ShowCollapsed = true;
+
 namespace seahorn {
 
 struct PtrOrigin {
@@ -133,13 +135,16 @@ public:
 
   SeaDsa(Pass *abc)
       : m_abc(abc),
-        m_dsa(&this->m_abc->getAnalysis<sea_dsa::DsaInfoPass>().getDsaInfo()) {}
+        m_dsa(&this->m_abc->getAnalysis<sea_dsa::DsaInfoPass>().getDsaInfo()) {
+  }
 
   SmallVector<Value *, 8> getAllocSites(Value *V, const Function &F) {
     auto *C = getCell(V, F);
     assert(C);
     auto *N = C->getNode();
     assert(N);
+
+    m_dsa->getDsaGraph(F)->viewGraph();
 
     SmallVector<Value *, 8> Sites;
     for (auto *S : N->getAllocSites()) {
@@ -488,7 +493,7 @@ CheckContext SimpleMemoryCheck::getUnsafeCandidates(Instruction *Inst,
         // Discard vtables.
         if (auto *C = dyn_cast<Constant>(AS))
           if (C->getName().startswith("_ZTVN"))
-            Interesting = false;
+            ; // Interesting = false;
       }
     }
 
@@ -882,7 +887,8 @@ bool SimpleMemoryCheck::runOnModule(llvm::Module &M) {
 
           // Skip collapsed DSA nodes for now, as they generate too much
           // noise.
-          if (Check.InterestingAllocSites.empty() /*|| Check.Collapsed*/) {
+          if (Check.InterestingAllocSites.empty() ||
+              (!ShowCollapsed && Check.Collapsed)) {
             UninterestingMIs.push_back(I);
             continue;
           }
