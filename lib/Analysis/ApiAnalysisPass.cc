@@ -24,20 +24,29 @@ namespace seahorn
 
    void ApiAnalysisPass::analyze(const Function *F, unsigned int& progress, ApiCallInfo& aci)
    {
-      for (auto analyzedfunc : m_apiAnalysis)
+
+     
+
+	   for (auto analyzedfunc : m_apiAnalysis)
       {
          if (F->getName() == analyzedfunc.m_func->getName())
-         {
+
+
+	 {
             if (analyzedfunc.getFinalAnalysis().m_progress == m_apilist.size())
-            {
-               return;
+
+	    {
+
+     		    return;
             }
-         }
+     
+     	 }
       }
 
 
       // First, get the basic blocks in topological order
       std::vector<const BasicBlock*> sortedBBlocks;
+     
       RevTopoSort(*F,sortedBBlocks);
       boost::reverse(sortedBBlocks);
 

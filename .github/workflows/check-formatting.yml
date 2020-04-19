@@ -14,6 +14,7 @@ jobs:
       - name: Checkout
         run: |
           git clone https://github.com/${{ github.repository }}.git .
+          git checkout ${{ github.base_ref }}
           git fetch origin +${{ github.sha }}:${{ github.ref }} --update-head-ok
           git checkout ${{ github.sha }}
       - name: Run clang-format
